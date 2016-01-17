@@ -1,0 +1,21 @@
+{
+  "name": "molovo/amnesia",
+  "autoload": {
+    "psr-4": {
+      "Molovo\\Amnesia\\": "src/"
+    }
+  },
+  "require": {
+    "PHP": ">=5.5",
+    "vlucas/phpdotenv": "2.1.*",
+    "molovo/object": "^0.2"
+  },
+  "suggest": {
+    "predis/predis": "To use the built-in Predis driver",
+    "ext-redis": "To use the built-in Redis driver",
+    "ext-memcached": "To use the built-in Memcached driver"
+  },
+  "require-dev": {
+    "filp/whoops": "1.*"
+  }
+}
