@@ -48,12 +48,19 @@ class Instance
      * Create a new instance of the cache and driver.
      *
      * @param string|null $name   The connection name
-     * @param Config      $config The config for the instance
+     * @param Config|null $config The config for the instance
      */
-    public function __construct($name = null, Config $config)
+    public function __construct($name = null, Config $config = null)
     {
         // If a name isn't provided, then we'll use the default
         $this->name   = $name ?: 'default';
+
+        // Load the config if it isn't passed in
+        if ($config === null) {
+            $config = Cache::config()->{$this->name};
+        }
+
+        // Set the name in the config as some drivers need it
         $config->name = $this->name;
 
         // Create a cache namespace key
