@@ -2,3 +2,5 @@ vendor/
 composer.lock
 index.php
 .env
+
+tests/_output/*
