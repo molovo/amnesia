@@ -2,6 +2,7 @@
 
 namespace Molovo\Amnesia\Driver;
 
+use Molovo\Amnesia\Cache\Instance;
 use Molovo\Amnesia\Config;
 use Molovo\Amnesia\Interfaces\Driver;
 
@@ -15,13 +16,21 @@ class Memcached implements Driver
     private $client = null;
 
     /**
+     * The instance which is using this driver.
+     *
+     * @var Instance|null
+     */
+    private $instance = null;
+
+    /**
      * Construct the driver instance.
      *
      * @param Config $config The instance config
      */
-    public function __construct(Config $config)
+    public function __construct(Config $config, Instance $instance)
     {
-        $this->client = new \Memcached($config->name);
+        $this->instance = $instance;
+        $this->client   = new \Memcached($config->name);
 
         if (count($this->client->getServerList()) === 0) {
             $this->client->addServers($config->servers->toArray());
@@ -37,7 +46,15 @@ class Memcached implements Driver
      */
     public function get($key)
     {
-        return $this->client->get($key);
+        $value = $this->client->get($key);
+
+        // The Memcached extension returns false not null for nonexistent
+        // values. For consistency's sake, we spoof that here
+        if ($value === false) {
+            $value = null;
+        }
+
+        return $value;
     }
 
     /**
@@ -65,7 +82,21 @@ class Memcached implements Driver
      */
     public function mget(array $keys = array())
     {
-        return array_values($this->client->getMulti($keys));
+        $values = $this->client->getMulti($keys);
+
+        $rtn = [];
+
+        // The Memcached extension returns false not null for nonexistent
+        // values. For consistency's sake, we spoof that here
+        foreach ($keys as $key) {
+            if (!isset($values[$key]) || $values[$key] === false) {
+                $values[$key] = null;
+            }
+
+            $rtn[$this->instance->unkey($key)] = $values[$key];
+        }
+
+        return $rtn;
     }
 
     /**
@@ -100,21 +131,50 @@ class Memcached implements Driver
     }
 
     /**
+     * Get all keys within the namespace.
+     *
+     * @return array
+     *
+     * @codeCoverageIgnore
+     */
+    public function keys($namespace)
+    {
+        return [];
+
+        // Memcached::getAllKeys does not work with newer versions of memcached,
+        // as the internal commands required for it have been deprecated.
+        // The functionality below does work with archaic versions of
+        // memcached. Keeping it here in case Memcached re-enables this
+        // functionality in the future so we can make use of it
+        //
+        // $allKeys = $this->client->getAllKeys();
+        //
+        // $keys = [];
+        //
+        // if ($allKeys !== false) {
+        //     foreach ($allKeys as $key) {
+        //         if (strpos($key, $namespace) === 0) {
+        //             $keys[] = $key;
+        //         }
+        //     }
+        // }
+        //
+        // return $keys;
+    }
+
+    /**
      * Flush all keys within a namespace from the cache.
      *
      * @param string $namespace The namespace to clear
+     *
+     * @codeCoverageIgnore
      */
     public function flush($namespace)
     {
-        $keys = $this->client->getAllKeys();
+        // Cannot get keys here.
+        // See comments in self::getAllKeys
+        // $keys = $this->keys($namespace);
 
-        $keysToFlush = [];
-        foreach ($keys as $key) {
-            if (strpos($key, $namespace) === 0) {
-                $keysToFlush[] = $key;
-            }
-        }
-
-        return $this->client->flush($keysToFlush);
+        return $this->client->flush();
     }
 }

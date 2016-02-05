@@ -2,6 +2,7 @@
 
 namespace Molovo\Amnesia\Driver;
 
+use Molovo\Amnesia\Cache\Instance;
 use Molovo\Amnesia\Config;
 use Molovo\Amnesia\Interfaces\Driver;
 
@@ -15,12 +16,20 @@ class File implements Driver
     private $storePath = null;
 
     /**
+     * The instance which is using this driver.
+     *
+     * @var Instance|null
+     */
+    private $instance = null;
+
+    /**
      * Construct the driver instance.
      *
      * @param Config $config The instance config
      */
-    public function __construct(Config $config)
+    public function __construct(Config $config, Instance $instance)
     {
+        $this->instance  = $instance;
         $this->storePath = $config->store_path;
     }
 
@@ -43,7 +52,7 @@ class File implements Driver
      *
      * @return string The returned json string
      */
-    public function get($key)
+    public function get($key, $log = false)
     {
         $filename = $this->filename($key);
 
@@ -59,7 +68,7 @@ class File implements Driver
 
         // If expiry time has passed, clear the specified key,
         // and return null
-        if (time() > $data->expires) {
+        if ($data->expires !== null && time() > $data->expires) {
             $this->clear($key);
 
             return;
@@ -82,7 +91,7 @@ class File implements Driver
 
         $data = [
             'value'   => $value,
-            'expires' => time() + $expires,
+            'expires' => $expires !== null ? time() + (int) $expires : null,
         ];
 
         file_put_contents($filename, json_encode($data));
@@ -100,7 +109,7 @@ class File implements Driver
         $values = [];
 
         foreach ($keys as $key) {
-            $values[] = $this->get($key);
+            $values[$this->instance->unkey($key)] = $this->get($key);
         }
 
         return $values;
@@ -146,17 +155,29 @@ class File implements Driver
     }
 
     /**
-     * Flush all keys within a namespace from the cache.
+     * Get all keys within the namespace.
      *
-     * @param string $namespace The namespace to clear
+     * @return array
      */
-    public function flush($namespace)
+    public function keys($namespace)
     {
         $keys = glob($this->filename($namespace));
 
         foreach ($keys as &$filename) {
             $filename = str_replace($this->storePath, '', $filename);
         }
+
+        return $keys;
+    }
+
+    /**
+     * Flush all keys within a namespace from the cache.
+     *
+     * @param string $namespace The namespace to clear
+     */
+    public function flush($namespace)
+    {
+        $keys = $this->keys($namespace);
 
         $this->mclear($keys);
     }

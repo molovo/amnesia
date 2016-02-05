@@ -2,6 +2,7 @@
 
 namespace Molovo\Amnesia\Driver;
 
+use Molovo\Amnesia\Cache\Instance;
 use Molovo\Amnesia\Config;
 use Molovo\Amnesia\Interfaces\Driver;
 
@@ -15,13 +16,21 @@ class Redis implements Driver
     private $client = null;
 
     /**
+     * The instance which is using this driver.
+     *
+     * @var Instance|null
+     */
+    private $instance = null;
+
+    /**
      * Construct the driver instance.
      *
      * @param Config $config The instance config
      */
-    public function __construct(Config $config)
+    public function __construct(Config $config, Instance $instance)
     {
-        $this->client = new \Redis;
+        $this->instance = $instance;
+        $this->client   = new \Redis;
 
         if ($config->socket) {
             $this->client->connect($config->socket);
@@ -42,7 +51,15 @@ class Redis implements Driver
      */
     public function get($key)
     {
-        return $this->client->get($key);
+        $value = $this->client->get($key);
+
+        // The Redis extension returns false not null for nonexistent
+        // values. For consistency's sake, we spoof that here
+        if ($value === false) {
+            $value = null;
+        }
+
+        return $value;
     }
 
     /**
@@ -70,7 +87,21 @@ class Redis implements Driver
      */
     public function mget(array $keys = array())
     {
-        return $this->client->mget($keys);
+        $values = $this->client->mget($keys);
+        $rtn    = [];
+
+        // The Redis extension returns false not null for nonexistent
+        // values. For consistency's sake, we spoof that here
+        foreach ($keys as $index => $key) {
+            $value = $values[$index];
+            if ($value === false) {
+                $value = null;
+            }
+
+            $rtn[$this->instance->unkey($key)] = $value;
+        }
+
+        return $rtn;
     }
 
     /**
@@ -109,19 +140,29 @@ class Redis implements Driver
     }
 
     /**
+     * Get all keys within the namespace.
+     *
+     * @return array
+     */
+    public function keys($namespace)
+    {
+        return $this->client->keys($namespace);
+    }
+
+    /**
      * Flush all keys within a namespace from the cache.
      *
      * @param string $namespace The namespace to clear
      */
     public function flush($namespace)
     {
-        $keys = $this->client->keys($namespace);
+        $keys = $this->keys($namespace);
 
         return $this->mclear($keys);
     }
 
     /**
-     *
+     * @codeCoverageIgnore
      */
     public function __destruct()
     {
