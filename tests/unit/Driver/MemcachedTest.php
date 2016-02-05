@@ -4,9 +4,9 @@ namespace Molovo\Amnesia\Tests\Unit\Driver;
 
 use Molovo\Amnesia\Cache;
 use Molovo\Amnesia\Cache\Instance;
-use Molovo\Amnesia\Driver\Redis;
+use Molovo\Amnesia\Driver\Memcached;
 
-class RedisTest extends \Codeception\TestCase\Test
+class MemcachedTest extends \Codeception\TestCase\Test
 {
     /**
      * The cache instance we are using for testing.
@@ -16,19 +16,22 @@ class RedisTest extends \Codeception\TestCase\Test
     private static $instance = null;
 
     /**
-     * Test the cache can be bootstrapped when using the redis driver.
+     * Test the cache can be bootstrapped when using the memcached driver.
      *
      * @covers Molovo\Amnesia\Cache::bootstrap
      * @covers Molovo\Amnesia\Cache\Instance::__construct
-     * @covers Molovo\Amnesia\Driver\Redis::__construct
+     * @covers Molovo\Amnesia\Driver\Memcached::__construct
      * @covers Molovo\Amnesia\Cache::instance
      */
     public function testBootstrap()
     {
-        $name   = 'redis_driver_test';
+        $name   = 'memcached_driver_test';
         $config = [
             $name => [
-                'driver' => 'redis',
+                'driver'  => 'memcached',
+                'servers' => [
+                    ['localhost', 11211],
+                ],
             ],
         ];
 
@@ -41,7 +44,7 @@ class RedisTest extends \Codeception\TestCase\Test
         $property = new \ReflectionProperty(Instance::class, 'driver');
         $property->setAccessible(true);
         $driver = $property->getValue($instance);
-        verify($driver)->isInstanceOf(Redis::class);
+        verify($driver)->isInstanceOf(Memcached::class);
 
         // Call a second time to test retrieval from cache
         $cached_instance = Cache::instance($name);
@@ -57,85 +60,6 @@ class RedisTest extends \Codeception\TestCase\Test
     }
 
     /**
-     * Test the cache can be bootstrapped when using the redis driver.
-     *
-     * @covers Molovo\Amnesia\Cache::bootstrap
-     * @covers Molovo\Amnesia\Cache\Instance::__construct
-     * @covers Molovo\Amnesia\Driver\Redis::__construct
-     * @covers Molovo\Amnesia\Cache::instance
-     */
-    public function testBootstrapTcp()
-    {
-        $name   = 'redis_driver_tcp_test';
-        $config = [
-            $name => [
-                'driver' => 'redis',
-                'host'   => '127.0.0.1',
-                'port'   => 6739,
-            ],
-        ];
-
-        Cache::bootstrap($config);
-
-        $instance = Cache::instance($name);
-        verify($instance)->isInstanceOf(Instance::class);
-
-        // Test that the driver has been instantiated correctly
-        $property = new \ReflectionProperty(Instance::class, 'driver');
-        $property->setAccessible(true);
-        $driver = $property->getValue($instance);
-        verify($driver)->isInstanceOf(Redis::class);
-
-        // Call a second time to test retrieval from cache
-        $cached_instance = Cache::instance($name);
-
-        // Compare hashes of the two instances to ensure they are
-        // the same object
-        $hash1 = spl_object_hash($instance);
-        $hash2 = spl_object_hash($cached_instance);
-        verify($hash1)->equals($hash2);
-    }
-
-    /**
-     * Test the cache can be bootstrapped when using the redis driver.
-     *
-     * @covers Molovo\Amnesia\Cache::bootstrap
-     * @covers Molovo\Amnesia\Cache\Instance::__construct
-     * @covers Molovo\Amnesia\Driver\Redis::__construct
-     * @covers Molovo\Amnesia\Cache::instance
-     */
-    public function testBootstrapSocket()
-    {
-        $name   = 'redis_driver_socket_test';
-        $config = [
-            $name => [
-                'driver' => 'redis',
-                'socket' => '/usr/local/var/run/redis/redis.sock',
-            ],
-        ];
-
-        Cache::bootstrap($config);
-
-        $instance = Cache::instance($name);
-        verify($instance)->isInstanceOf(Instance::class);
-
-        // Test that the driver has been instantiated correctly
-        $property = new \ReflectionProperty(Instance::class, 'driver');
-        $property->setAccessible(true);
-        $driver = $property->getValue($instance);
-        verify($driver)->isInstanceOf(Redis::class);
-
-        // Call a second time to test retrieval from cache
-        $cached_instance = Cache::instance($name);
-
-        // Compare hashes of the two instances to ensure they are
-        // the same object
-        $hash1 = spl_object_hash($instance);
-        $hash2 = spl_object_hash($cached_instance);
-        verify($hash1)->equals($hash2);
-    }
-
-    /**
      * Test that values can be set correctly.
      *
      * @depends testBootstrap
@@ -143,8 +67,8 @@ class RedisTest extends \Codeception\TestCase\Test
      * @covers Molovo\Amnesia\Cache\Instance::set
      * @covers Molovo\Amnesia\Cache\Instance::encode
      * @covers Molovo\Amnesia\Cache\Instance::decode
-     * @covers Molovo\Amnesia\Driver\Redis::set
-     * @covers Molovo\Amnesia\Driver\Redis::get
+     * @covers Molovo\Amnesia\Driver\Memcached::set
+     * @covers Molovo\Amnesia\Driver\Memcached::get
      */
     public function testSet()
     {
@@ -162,8 +86,8 @@ class RedisTest extends \Codeception\TestCase\Test
      * @covers Molovo\Amnesia\Cache\Instance::set
      * @covers Molovo\Amnesia\Cache\Instance::encode
      * @covers Molovo\Amnesia\Cache\Instance::decode
-     * @covers Molovo\Amnesia\Driver\Redis::set
-     * @covers Molovo\Amnesia\Driver\Redis::get
+     * @covers Molovo\Amnesia\Driver\Memcached::set
+     * @covers Molovo\Amnesia\Driver\Memcached::get
      */
     public function testSetNested()
     {
@@ -181,8 +105,8 @@ class RedisTest extends \Codeception\TestCase\Test
      * @covers Molovo\Amnesia\Cache\Instance::set
      * @covers Molovo\Amnesia\Cache\Instance::encode
      * @covers Molovo\Amnesia\Cache\Instance::decode
-     * @covers Molovo\Amnesia\Driver\Redis::set
-     * @covers Molovo\Amnesia\Driver\Redis::get
+     * @covers Molovo\Amnesia\Driver\Memcached::set
+     * @covers Molovo\Amnesia\Driver\Memcached::get
      */
     public function testSetWithNullValue()
     {
@@ -200,8 +124,8 @@ class RedisTest extends \Codeception\TestCase\Test
      * @covers Molovo\Amnesia\Cache\Instance::set
      * @covers Molovo\Amnesia\Cache\Instance::encode
      * @covers Molovo\Amnesia\Cache\Instance::decode
-     * @covers Molovo\Amnesia\Driver\Redis::set
-     * @covers Molovo\Amnesia\Driver\Redis::get
+     * @covers Molovo\Amnesia\Driver\Memcached::set
+     * @covers Molovo\Amnesia\Driver\Memcached::get
      */
     public function testSetWithExpiry()
     {
@@ -222,7 +146,7 @@ class RedisTest extends \Codeception\TestCase\Test
      * @depends testSet
      *
      * @covers Molovo\Amnesia\Cache\Instance::get
-     * @covers Molovo\Amnesia\Driver\Redis::get
+     * @covers Molovo\Amnesia\Driver\Memcached::get
      */
     public function testGet()
     {
@@ -238,7 +162,7 @@ class RedisTest extends \Codeception\TestCase\Test
      * @depends testSetNested
      *
      * @covers Molovo\Amnesia\Cache\Instance::get
-     * @covers Molovo\Amnesia\Driver\Redis::get
+     * @covers Molovo\Amnesia\Driver\Memcached::get
      */
     public function testGetNested()
     {
@@ -254,7 +178,7 @@ class RedisTest extends \Codeception\TestCase\Test
      *
      * @covers Molovo\Amnesia\Cache\Instance::get
      * @covers Molovo\Amnesia\Cache\Instance::decode
-     * @covers Molovo\Amnesia\Driver\Redis::get
+     * @covers Molovo\Amnesia\Driver\Memcached::get
      */
     public function testGetNonexistent()
     {
@@ -271,8 +195,8 @@ class RedisTest extends \Codeception\TestCase\Test
      * @covers Molovo\Amnesia\Cache\Instance::set
      * @covers Molovo\Amnesia\Cache\Instance::encode
      * @covers Molovo\Amnesia\Cache\Instance::decode
-     * @covers Molovo\Amnesia\Driver\Redis::set
-     * @covers Molovo\Amnesia\Driver\Redis::get
+     * @covers Molovo\Amnesia\Driver\Memcached::set
+     * @covers Molovo\Amnesia\Driver\Memcached::get
      */
     public function testSetWithArray()
     {
@@ -299,8 +223,8 @@ class RedisTest extends \Codeception\TestCase\Test
      * @covers Molovo\Amnesia\Cache\Instance::set
      * @covers Molovo\Amnesia\Cache\Instance::encode
      * @covers Molovo\Amnesia\Cache\Instance::decode
-     * @covers Molovo\Amnesia\Driver\Redis::set
-     * @covers Molovo\Amnesia\Driver\Redis::get
+     * @covers Molovo\Amnesia\Driver\Memcached::set
+     * @covers Molovo\Amnesia\Driver\Memcached::get
      */
     public function testSetWithObject()
     {
@@ -327,8 +251,8 @@ class RedisTest extends \Codeception\TestCase\Test
      * @covers Molovo\Amnesia\Cache\Instance::mset
      * @covers Molovo\Amnesia\Cache\Instance::encode
      * @covers Molovo\Amnesia\Cache\Instance::decode
-     * @covers Molovo\Amnesia\Driver\Redis::mset
-     * @covers Molovo\Amnesia\Driver\Redis::mget
+     * @covers Molovo\Amnesia\Driver\Memcached::mset
+     * @covers Molovo\Amnesia\Driver\Memcached::mget
      */
     public function testSetMultiple()
     {
@@ -351,8 +275,8 @@ class RedisTest extends \Codeception\TestCase\Test
      * @covers Molovo\Amnesia\Cache\Instance::mset
      * @covers Molovo\Amnesia\Cache\Instance::encode
      * @covers Molovo\Amnesia\Cache\Instance::decode
-     * @covers Molovo\Amnesia\Driver\Redis::mset
-     * @covers Molovo\Amnesia\Driver\Redis::mget
+     * @covers Molovo\Amnesia\Driver\Memcached::mset
+     * @covers Molovo\Amnesia\Driver\Memcached::mget
      */
     public function testSetMultipleNested()
     {
@@ -375,8 +299,8 @@ class RedisTest extends \Codeception\TestCase\Test
      * @covers Molovo\Amnesia\Cache\Instance::mset
      * @covers Molovo\Amnesia\Cache\Instance::encode
      * @covers Molovo\Amnesia\Cache\Instance::decode
-     * @covers Molovo\Amnesia\Driver\Redis::mset
-     * @covers Molovo\Amnesia\Driver\Redis::mget
+     * @covers Molovo\Amnesia\Driver\Memcached::mset
+     * @covers Molovo\Amnesia\Driver\Memcached::mget
      */
     public function testSetMultipleWithNullValue()
     {
@@ -399,8 +323,8 @@ class RedisTest extends \Codeception\TestCase\Test
      * @covers Molovo\Amnesia\Cache\Instance::mset
      * @covers Molovo\Amnesia\Cache\Instance::encode
      * @covers Molovo\Amnesia\Cache\Instance::decode
-     * @covers Molovo\Amnesia\Driver\Redis::mset
-     * @covers Molovo\Amnesia\Driver\Redis::mget
+     * @covers Molovo\Amnesia\Driver\Memcached::mset
+     * @covers Molovo\Amnesia\Driver\Memcached::mget
      */
     public function testSetMultipleWithExpiry()
     {
@@ -429,13 +353,13 @@ class RedisTest extends \Codeception\TestCase\Test
      * @depends testBootstrap
      *
      * @covers Molovo\Amnesia\Cache\Instance::clear
-     * @covers Molovo\Amnesia\Driver\Redis::clear
+     * @covers Molovo\Amnesia\Driver\Memcached::clear
      *
-     * @uses Molovo\Amnesia\Cache\Instance::mset
+     * @uses Molovo\Amnesia\Cache\Instance::set
      * @uses Molovo\Amnesia\Cache\Instance::encode
      * @uses Molovo\Amnesia\Cache\Instance::decode
-     * @uses Molovo\Amnesia\Driver\Redis::mset
-     * @uses Molovo\Amnesia\Driver\Redis::mget
+     * @uses Molovo\Amnesia\Driver\Memcached::set
+     * @uses Molovo\Amnesia\Driver\Memcached::get
      */
     public function testClear()
     {
@@ -455,13 +379,13 @@ class RedisTest extends \Codeception\TestCase\Test
      * @depends testBootstrap
      *
      * @covers Molovo\Amnesia\Cache\Instance::mclear
-     * @covers Molovo\Amnesia\Driver\Redis::mclear
+     * @covers Molovo\Amnesia\Driver\Memcached::mclear
      *
      * @uses Molovo\Amnesia\Cache\Instance::mset
      * @uses Molovo\Amnesia\Cache\Instance::encode
      * @uses Molovo\Amnesia\Cache\Instance::decode
-     * @uses Molovo\Amnesia\Driver\Redis::mset
-     * @uses Molovo\Amnesia\Driver\Redis::mget
+     * @uses Molovo\Amnesia\Driver\Memcached::mset
+     * @uses Molovo\Amnesia\Driver\Memcached::mget
      */
     public function testClearMultiple()
     {
@@ -484,38 +408,51 @@ class RedisTest extends \Codeception\TestCase\Test
         ]);
     }
 
-    /**
-     * Tests that the keys can be retrieved correctly.
-     *
-     * @depends testBootstrap
-     *
-     * @covers Molovo\Amnesia\Cache\Instance::keys
-     * @covers Molovo\Amnesia\Driver\Redis::keys
-     */
-    public function testKeys()
-    {
-        // We know keys should be filled, because we've been using
-        // the cache extensively during the tests above
-        $keys = static::$instance->keys();
-        verify($keys)->notEmpty();
-    }
-
-    /**
-     * Tests that the database can be flushed correctly.
-     *
-     * @depends testBootstrap
-     *
-     * @covers Molovo\Amnesia\Cache\Instance::flush
-     * @covers Molovo\Amnesia\Driver\Redis::flush
-     */
-    public function testFlush()
-    {
-        $keys = static::$instance->keys();
-        verify($keys)->notEquals([]);
-
-        static::$instance->flush();
-
-        $keys = static::$instance->keys();
-        verify($keys)->equals([]);
-    }
+    // The tests below cannot be run in any useful way, as Memcached::getAllKeys
+    // has been deprecated. For now to get round it, Driver\Memcached::keys()
+    // returns an empty array, and Driver\Memcached::flush() flushes the entire
+    // db, as we have no way at all of using namespacing.
+    // 
+    //  /**
+    //  * Tests that the keys can be retrieved correctly.
+    //  *
+    //  * @depends testBootstrap
+    //  *
+    //  * @covers Molovo\Amnesia\Cache\Instance::keys
+    //  * @covers Molovo\Amnesia\Driver\Memcached::keys
+    //  */
+    // public function testKeys()
+    // {
+    //     // We know keys should be filled, because we've been using
+    //     // the cache extensively during the tests above
+    //     $keys = static::$instance->keys();
+    //     verify($keys)->notEmpty();
+    // }
+    //
+    // /**
+    //  * Tests that the database can be flushed correctly.
+    //  *
+    //  * @depends testBootstrap
+    //  *
+    //  * @covers Molovo\Amnesia\Cache\Instance::flush
+    //  * @covers Molovo\Amnesia\Driver\Memcached::flush
+    //  */
+    // public function testFlush()
+    // {
+    //     // static::$instance->set('key', 'value');
+    //     // $value = static::$instance->get('key');
+    //     // verify($value)->equals('value');
+    //     //
+    //     // static::$instance->flush();
+    //     // verify($value)->null();
+    //
+    //     // We cannot run this test as Memcached::getAllKeys is deprecated
+    //     $keys = static::$instance->keys();
+    //     verify($keys)->notEmpty();
+    //
+    //     static::$instance->flush();
+    //
+    //     $keys = static::$instance->keys();
+    //     verify($keys)->equals([]);
+    // }
 }

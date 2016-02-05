@@ -4,9 +4,9 @@ namespace Molovo\Amnesia\Tests\Unit\Driver;
 
 use Molovo\Amnesia\Cache;
 use Molovo\Amnesia\Cache\Instance;
-use Molovo\Amnesia\Driver\Redis;
+use Molovo\Amnesia\Driver\Predis;
 
-class RedisTest extends \Codeception\TestCase\Test
+class PredisTest extends \Codeception\TestCase\Test
 {
     /**
      * The cache instance we are using for testing.
@@ -20,15 +20,15 @@ class RedisTest extends \Codeception\TestCase\Test
      *
      * @covers Molovo\Amnesia\Cache::bootstrap
      * @covers Molovo\Amnesia\Cache\Instance::__construct
-     * @covers Molovo\Amnesia\Driver\Redis::__construct
+     * @covers Molovo\Amnesia\Driver\Predis::__construct
      * @covers Molovo\Amnesia\Cache::instance
      */
     public function testBootstrap()
     {
-        $name   = 'redis_driver_test';
+        $name   = 'predis_driver_test';
         $config = [
             $name => [
-                'driver' => 'redis',
+                'driver' => 'predis',
             ],
         ];
 
@@ -41,7 +41,7 @@ class RedisTest extends \Codeception\TestCase\Test
         $property = new \ReflectionProperty(Instance::class, 'driver');
         $property->setAccessible(true);
         $driver = $property->getValue($instance);
-        verify($driver)->isInstanceOf(Redis::class);
+        verify($driver)->isInstanceOf(Predis::class);
 
         // Call a second time to test retrieval from cache
         $cached_instance = Cache::instance($name);
@@ -57,19 +57,19 @@ class RedisTest extends \Codeception\TestCase\Test
     }
 
     /**
-     * Test the cache can be bootstrapped when using the redis driver.
+     * Test the cache can be bootstrapped when using the predis driver.
      *
      * @covers Molovo\Amnesia\Cache::bootstrap
      * @covers Molovo\Amnesia\Cache\Instance::__construct
-     * @covers Molovo\Amnesia\Driver\Redis::__construct
+     * @covers Molovo\Amnesia\Driver\Predis::__construct
      * @covers Molovo\Amnesia\Cache::instance
      */
     public function testBootstrapTcp()
     {
-        $name   = 'redis_driver_tcp_test';
+        $name   = 'predis_driver_tcp_test';
         $config = [
             $name => [
-                'driver' => 'redis',
+                'driver' => 'predis',
                 'host'   => '127.0.0.1',
                 'port'   => 6739,
             ],
@@ -84,7 +84,7 @@ class RedisTest extends \Codeception\TestCase\Test
         $property = new \ReflectionProperty(Instance::class, 'driver');
         $property->setAccessible(true);
         $driver = $property->getValue($instance);
-        verify($driver)->isInstanceOf(Redis::class);
+        verify($driver)->isInstanceOf(Predis::class);
 
         // Call a second time to test retrieval from cache
         $cached_instance = Cache::instance($name);
@@ -97,19 +97,19 @@ class RedisTest extends \Codeception\TestCase\Test
     }
 
     /**
-     * Test the cache can be bootstrapped when using the redis driver.
+     * Test the cache can be bootstrapped when using the predis driver.
      *
      * @covers Molovo\Amnesia\Cache::bootstrap
      * @covers Molovo\Amnesia\Cache\Instance::__construct
-     * @covers Molovo\Amnesia\Driver\Redis::__construct
+     * @covers Molovo\Amnesia\Driver\Predis::__construct
      * @covers Molovo\Amnesia\Cache::instance
      */
     public function testBootstrapSocket()
     {
-        $name   = 'redis_driver_socket_test';
+        $name   = 'predis_driver_socket_test';
         $config = [
             $name => [
-                'driver' => 'redis',
+                'driver' => 'predis',
                 'socket' => '/usr/local/var/run/redis/redis.sock',
             ],
         ];
@@ -123,7 +123,7 @@ class RedisTest extends \Codeception\TestCase\Test
         $property = new \ReflectionProperty(Instance::class, 'driver');
         $property->setAccessible(true);
         $driver = $property->getValue($instance);
-        verify($driver)->isInstanceOf(Redis::class);
+        verify($driver)->isInstanceOf(Predis::class);
 
         // Call a second time to test retrieval from cache
         $cached_instance = Cache::instance($name);
@@ -143,8 +143,8 @@ class RedisTest extends \Codeception\TestCase\Test
      * @covers Molovo\Amnesia\Cache\Instance::set
      * @covers Molovo\Amnesia\Cache\Instance::encode
      * @covers Molovo\Amnesia\Cache\Instance::decode
-     * @covers Molovo\Amnesia\Driver\Redis::set
-     * @covers Molovo\Amnesia\Driver\Redis::get
+     * @covers Molovo\Amnesia\Driver\Predis::set
+     * @covers Molovo\Amnesia\Driver\Predis::get
      */
     public function testSet()
     {
@@ -162,8 +162,8 @@ class RedisTest extends \Codeception\TestCase\Test
      * @covers Molovo\Amnesia\Cache\Instance::set
      * @covers Molovo\Amnesia\Cache\Instance::encode
      * @covers Molovo\Amnesia\Cache\Instance::decode
-     * @covers Molovo\Amnesia\Driver\Redis::set
-     * @covers Molovo\Amnesia\Driver\Redis::get
+     * @covers Molovo\Amnesia\Driver\Predis::set
+     * @covers Molovo\Amnesia\Driver\Predis::get
      */
     public function testSetNested()
     {
@@ -181,8 +181,8 @@ class RedisTest extends \Codeception\TestCase\Test
      * @covers Molovo\Amnesia\Cache\Instance::set
      * @covers Molovo\Amnesia\Cache\Instance::encode
      * @covers Molovo\Amnesia\Cache\Instance::decode
-     * @covers Molovo\Amnesia\Driver\Redis::set
-     * @covers Molovo\Amnesia\Driver\Redis::get
+     * @covers Molovo\Amnesia\Driver\Predis::set
+     * @covers Molovo\Amnesia\Driver\Predis::get
      */
     public function testSetWithNullValue()
     {
@@ -200,8 +200,8 @@ class RedisTest extends \Codeception\TestCase\Test
      * @covers Molovo\Amnesia\Cache\Instance::set
      * @covers Molovo\Amnesia\Cache\Instance::encode
      * @covers Molovo\Amnesia\Cache\Instance::decode
-     * @covers Molovo\Amnesia\Driver\Redis::set
-     * @covers Molovo\Amnesia\Driver\Redis::get
+     * @covers Molovo\Amnesia\Driver\Predis::set
+     * @covers Molovo\Amnesia\Driver\Predis::get
      */
     public function testSetWithExpiry()
     {
@@ -222,7 +222,7 @@ class RedisTest extends \Codeception\TestCase\Test
      * @depends testSet
      *
      * @covers Molovo\Amnesia\Cache\Instance::get
-     * @covers Molovo\Amnesia\Driver\Redis::get
+     * @covers Molovo\Amnesia\Driver\Predis::get
      */
     public function testGet()
     {
@@ -238,7 +238,7 @@ class RedisTest extends \Codeception\TestCase\Test
      * @depends testSetNested
      *
      * @covers Molovo\Amnesia\Cache\Instance::get
-     * @covers Molovo\Amnesia\Driver\Redis::get
+     * @covers Molovo\Amnesia\Driver\Predis::get
      */
     public function testGetNested()
     {
@@ -254,7 +254,7 @@ class RedisTest extends \Codeception\TestCase\Test
      *
      * @covers Molovo\Amnesia\Cache\Instance::get
      * @covers Molovo\Amnesia\Cache\Instance::decode
-     * @covers Molovo\Amnesia\Driver\Redis::get
+     * @covers Molovo\Amnesia\Driver\Predis::get
      */
     public function testGetNonexistent()
     {
@@ -271,8 +271,8 @@ class RedisTest extends \Codeception\TestCase\Test
      * @covers Molovo\Amnesia\Cache\Instance::set
      * @covers Molovo\Amnesia\Cache\Instance::encode
      * @covers Molovo\Amnesia\Cache\Instance::decode
-     * @covers Molovo\Amnesia\Driver\Redis::set
-     * @covers Molovo\Amnesia\Driver\Redis::get
+     * @covers Molovo\Amnesia\Driver\Predis::set
+     * @covers Molovo\Amnesia\Driver\Predis::get
      */
     public function testSetWithArray()
     {
@@ -299,8 +299,8 @@ class RedisTest extends \Codeception\TestCase\Test
      * @covers Molovo\Amnesia\Cache\Instance::set
      * @covers Molovo\Amnesia\Cache\Instance::encode
      * @covers Molovo\Amnesia\Cache\Instance::decode
-     * @covers Molovo\Amnesia\Driver\Redis::set
-     * @covers Molovo\Amnesia\Driver\Redis::get
+     * @covers Molovo\Amnesia\Driver\Predis::set
+     * @covers Molovo\Amnesia\Driver\Predis::get
      */
     public function testSetWithObject()
     {
@@ -327,8 +327,8 @@ class RedisTest extends \Codeception\TestCase\Test
      * @covers Molovo\Amnesia\Cache\Instance::mset
      * @covers Molovo\Amnesia\Cache\Instance::encode
      * @covers Molovo\Amnesia\Cache\Instance::decode
-     * @covers Molovo\Amnesia\Driver\Redis::mset
-     * @covers Molovo\Amnesia\Driver\Redis::mget
+     * @covers Molovo\Amnesia\Driver\Predis::mset
+     * @covers Molovo\Amnesia\Driver\Predis::mget
      */
     public function testSetMultiple()
     {
@@ -351,8 +351,8 @@ class RedisTest extends \Codeception\TestCase\Test
      * @covers Molovo\Amnesia\Cache\Instance::mset
      * @covers Molovo\Amnesia\Cache\Instance::encode
      * @covers Molovo\Amnesia\Cache\Instance::decode
-     * @covers Molovo\Amnesia\Driver\Redis::mset
-     * @covers Molovo\Amnesia\Driver\Redis::mget
+     * @covers Molovo\Amnesia\Driver\Predis::mset
+     * @covers Molovo\Amnesia\Driver\Predis::mget
      */
     public function testSetMultipleNested()
     {
@@ -375,8 +375,8 @@ class RedisTest extends \Codeception\TestCase\Test
      * @covers Molovo\Amnesia\Cache\Instance::mset
      * @covers Molovo\Amnesia\Cache\Instance::encode
      * @covers Molovo\Amnesia\Cache\Instance::decode
-     * @covers Molovo\Amnesia\Driver\Redis::mset
-     * @covers Molovo\Amnesia\Driver\Redis::mget
+     * @covers Molovo\Amnesia\Driver\Predis::mset
+     * @covers Molovo\Amnesia\Driver\Predis::mget
      */
     public function testSetMultipleWithNullValue()
     {
@@ -399,8 +399,8 @@ class RedisTest extends \Codeception\TestCase\Test
      * @covers Molovo\Amnesia\Cache\Instance::mset
      * @covers Molovo\Amnesia\Cache\Instance::encode
      * @covers Molovo\Amnesia\Cache\Instance::decode
-     * @covers Molovo\Amnesia\Driver\Redis::mset
-     * @covers Molovo\Amnesia\Driver\Redis::mget
+     * @covers Molovo\Amnesia\Driver\Predis::mset
+     * @covers Molovo\Amnesia\Driver\Predis::mget
      */
     public function testSetMultipleWithExpiry()
     {
@@ -429,13 +429,13 @@ class RedisTest extends \Codeception\TestCase\Test
      * @depends testBootstrap
      *
      * @covers Molovo\Amnesia\Cache\Instance::clear
-     * @covers Molovo\Amnesia\Driver\Redis::clear
+     * @covers Molovo\Amnesia\Driver\Predis::clear
      *
      * @uses Molovo\Amnesia\Cache\Instance::mset
      * @uses Molovo\Amnesia\Cache\Instance::encode
      * @uses Molovo\Amnesia\Cache\Instance::decode
-     * @uses Molovo\Amnesia\Driver\Redis::mset
-     * @uses Molovo\Amnesia\Driver\Redis::mget
+     * @uses Molovo\Amnesia\Driver\Predis::mset
+     * @uses Molovo\Amnesia\Driver\Predis::mget
      */
     public function testClear()
     {
@@ -455,13 +455,13 @@ class RedisTest extends \Codeception\TestCase\Test
      * @depends testBootstrap
      *
      * @covers Molovo\Amnesia\Cache\Instance::mclear
-     * @covers Molovo\Amnesia\Driver\Redis::mclear
+     * @covers Molovo\Amnesia\Driver\Predis::mclear
      *
      * @uses Molovo\Amnesia\Cache\Instance::mset
      * @uses Molovo\Amnesia\Cache\Instance::encode
      * @uses Molovo\Amnesia\Cache\Instance::decode
-     * @uses Molovo\Amnesia\Driver\Redis::mset
-     * @uses Molovo\Amnesia\Driver\Redis::mget
+     * @uses Molovo\Amnesia\Driver\Predis::mset
+     * @uses Molovo\Amnesia\Driver\Predis::mget
      */
     public function testClearMultiple()
     {
@@ -490,7 +490,7 @@ class RedisTest extends \Codeception\TestCase\Test
      * @depends testBootstrap
      *
      * @covers Molovo\Amnesia\Cache\Instance::keys
-     * @covers Molovo\Amnesia\Driver\Redis::keys
+     * @covers Molovo\Amnesia\Driver\Predis::keys
      */
     public function testKeys()
     {
@@ -506,7 +506,7 @@ class RedisTest extends \Codeception\TestCase\Test
      * @depends testBootstrap
      *
      * @covers Molovo\Amnesia\Cache\Instance::flush
-     * @covers Molovo\Amnesia\Driver\Redis::flush
+     * @covers Molovo\Amnesia\Driver\Predis::flush
      */
     public function testFlush()
     {
