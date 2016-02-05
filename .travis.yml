@@ -1,0 +1,25 @@
+language: php
+
+services:
+  - memcached
+  - redis-server
+
+php:
+  - 5.5
+  - 5.6
+  - hhvm
+  #- 7.0 Although PHP7 works, travis doesn't yet support it
+
+before_install:
+  - echo "extension = redis.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+  - echo "extension = memcached.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+  - composer self-update
+  - if [[ $TRAVIS_PHP_VERSION != 'hhvm' ]]; then COVERAGE_FLAGS="--coverage --coverage-xml"; fi # PHPUnit code coverage doesn't currently work under HHVM
+
+install:
+  - composer update --dev
+
+script: vendor/bin/codecept run $COVERAGE_FLAGS
+
+after_success:
+  - php vendor/bin/coveralls -v
