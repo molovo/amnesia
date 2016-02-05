@@ -53,7 +53,7 @@ class Instance
     public function __construct($name = null, Config $config = null)
     {
         // If a name isn't provided, then we'll use the default
-        $this->name   = $name ?: 'default';
+        $this->name = $name ?: 'default';
 
         // Load the config if it isn't passed in
         if ($config === null) {
@@ -83,9 +83,21 @@ class Instance
      *
      * @return string The namespaced key
      */
-    private function key($key)
+    public function key($key)
     {
         return $this->key.'.'.$key;
+    }
+
+    /**
+     * Remove the namespace from a key.
+     *
+     * @param string $key The key
+     *
+     * @return string The un-namespaced key
+     */
+    public function unkey($key)
+    {
+        return str_replace($this->key.'.', '', $key);
     }
 
     /**
@@ -222,11 +234,27 @@ class Instance
     }
 
     /**
+     * Get all keys within the cache.
+     *
+     * @return array
+     */
+    public function keys($namespace = null)
+    {
+        $namespace = $namespace
+                   ? $this->key($namespace.'.*')
+                   : $this->key('*');
+
+        return $this->driver->keys($namespace);
+    }
+
+    /**
      * Flush the full contents of the cache.
      */
-    public function flush()
+    public function flush($namespace = null)
     {
-        $namespace = $this->key('*');
+        $namespace = $namespace
+                   ? $this->key($namespace.'.*')
+                   : $this->key('*');
 
         $this->driver->flush($namespace);
     }
