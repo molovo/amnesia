@@ -65,6 +65,7 @@ class MemcachedTest extends \Codeception\TestCase\Test
      * @depends testBootstrap
      *
      * @covers Molovo\Amnesia\Cache\Instance::set
+     * @covers Molovo\Amnesia\Cache\Instance::get
      * @covers Molovo\Amnesia\Cache\Instance::encode
      * @covers Molovo\Amnesia\Cache\Instance::decode
      * @covers Molovo\Amnesia\Driver\Memcached::set
@@ -84,6 +85,7 @@ class MemcachedTest extends \Codeception\TestCase\Test
      * @depends testBootstrap
      *
      * @covers Molovo\Amnesia\Cache\Instance::set
+     * @covers Molovo\Amnesia\Cache\Instance::get
      * @covers Molovo\Amnesia\Cache\Instance::encode
      * @covers Molovo\Amnesia\Cache\Instance::decode
      * @covers Molovo\Amnesia\Driver\Memcached::set
@@ -103,6 +105,7 @@ class MemcachedTest extends \Codeception\TestCase\Test
      * @depends testBootstrap
      *
      * @covers Molovo\Amnesia\Cache\Instance::set
+     * @covers Molovo\Amnesia\Cache\Instance::get
      * @covers Molovo\Amnesia\Cache\Instance::encode
      * @covers Molovo\Amnesia\Cache\Instance::decode
      * @covers Molovo\Amnesia\Driver\Memcached::set
@@ -122,6 +125,7 @@ class MemcachedTest extends \Codeception\TestCase\Test
      * @depends testBootstrap
      *
      * @covers Molovo\Amnesia\Cache\Instance::set
+     * @covers Molovo\Amnesia\Cache\Instance::get
      * @covers Molovo\Amnesia\Cache\Instance::encode
      * @covers Molovo\Amnesia\Cache\Instance::decode
      * @covers Molovo\Amnesia\Driver\Memcached::set
@@ -193,6 +197,7 @@ class MemcachedTest extends \Codeception\TestCase\Test
      * @depends testBootstrap
      *
      * @covers Molovo\Amnesia\Cache\Instance::set
+     * @covers Molovo\Amnesia\Cache\Instance::get
      * @covers Molovo\Amnesia\Cache\Instance::encode
      * @covers Molovo\Amnesia\Cache\Instance::decode
      * @covers Molovo\Amnesia\Driver\Memcached::set
@@ -221,6 +226,7 @@ class MemcachedTest extends \Codeception\TestCase\Test
      * @depends testBootstrap
      *
      * @covers Molovo\Amnesia\Cache\Instance::set
+     * @covers Molovo\Amnesia\Cache\Instance::get
      * @covers Molovo\Amnesia\Cache\Instance::encode
      * @covers Molovo\Amnesia\Cache\Instance::decode
      * @covers Molovo\Amnesia\Driver\Memcached::set
@@ -249,6 +255,7 @@ class MemcachedTest extends \Codeception\TestCase\Test
      * @depends testBootstrap
      *
      * @covers Molovo\Amnesia\Cache\Instance::mset
+     * @covers Molovo\Amnesia\Cache\Instance::mget
      * @covers Molovo\Amnesia\Cache\Instance::encode
      * @covers Molovo\Amnesia\Cache\Instance::decode
      * @covers Molovo\Amnesia\Driver\Memcached::mset
@@ -273,6 +280,7 @@ class MemcachedTest extends \Codeception\TestCase\Test
      * @depends testBootstrap
      *
      * @covers Molovo\Amnesia\Cache\Instance::mset
+     * @covers Molovo\Amnesia\Cache\Instance::mget
      * @covers Molovo\Amnesia\Cache\Instance::encode
      * @covers Molovo\Amnesia\Cache\Instance::decode
      * @covers Molovo\Amnesia\Driver\Memcached::mset
@@ -297,6 +305,7 @@ class MemcachedTest extends \Codeception\TestCase\Test
      * @depends testBootstrap
      *
      * @covers Molovo\Amnesia\Cache\Instance::mset
+     * @covers Molovo\Amnesia\Cache\Instance::mget
      * @covers Molovo\Amnesia\Cache\Instance::encode
      * @covers Molovo\Amnesia\Cache\Instance::decode
      * @covers Molovo\Amnesia\Driver\Memcached::mset
@@ -316,11 +325,92 @@ class MemcachedTest extends \Codeception\TestCase\Test
     }
 
     /**
+     * Test that multiple array values are encoded and stored correctly.
+     *
+     * @depends testBootstrap
+     *
+     * @covers Molovo\Amnesia\Cache\Instance::mset
+     * @covers Molovo\Amnesia\Cache\Instance::mget
+     * @covers Molovo\Amnesia\Cache\Instance::encode
+     * @covers Molovo\Amnesia\Cache\Instance::decode
+     * @covers Molovo\Amnesia\Driver\Memcached::mset
+     * @covers Molovo\Amnesia\Driver\Memcached::mget
+     */
+    public function testSetMultipleWithArrays()
+    {
+        $set = [
+            'first' => [
+                'test' => 'value',
+            ],
+            'second' => [
+                'test' => 'value',
+            ],
+        ];
+        static::$instance->mset($set);
+
+        $values = static::$instance->mget(['first', 'second']);
+        foreach ($set as $key => $value) {
+            verify($values[$key])->equals((object) $value);
+        }
+
+        $values = static::$instance->mget(['first', 'second'], true, true);
+        foreach ($set as $key => $value) {
+            verify($values[$key])->equals($value);
+        }
+
+        $values = static::$instance->mget(['first', 'second'], false);
+        foreach ($set as $key => $value) {
+            verify($values[$key])->equals('{"test":"value"}');
+        }
+    }
+
+    /**
+     * Test that multiple object values are encoded and stored correctly.
+     *
+     * @depends testBootstrap
+     *
+     * @covers Molovo\Amnesia\Cache\Instance::mset
+     * @covers Molovo\Amnesia\Cache\Instance::mget
+     * @covers Molovo\Amnesia\Cache\Instance::encode
+     * @covers Molovo\Amnesia\Cache\Instance::decode
+     * @covers Molovo\Amnesia\Driver\Memcached::mset
+     * @covers Molovo\Amnesia\Driver\Memcached::mget
+     */
+    public function testSetMultipleWithObjects()
+    {
+        $set = [
+            'first' => (object) [
+                'test' => 'value',
+            ],
+            'second' => (object) [
+                'test' => 'value',
+            ],
+        ];
+        static::$instance->mset($set);
+
+        $values = static::$instance->mget(['first', 'second']);
+        foreach ($set as $key => $value) {
+            verify($values[$key])->equals($value);
+        }
+
+        $values = static::$instance->mget(['first', 'second'], true, true);
+        foreach ($set as $key => $value) {
+            verify($values[$key])->equals((array) $value);
+        }
+
+        $values = static::$instance->mget(['first', 'second'], false);
+        foreach ($set as $key => $value) {
+            verify($values[$key])->equals('{"test":"value"}');
+        }
+    }
+
+    /**
      * Test that multiple values expire correctly.
      *
      * @depends testBootstrap
      *
      * @covers Molovo\Amnesia\Cache\Instance::mset
+     * @covers Molovo\Amnesia\Cache\Instance::mget
      * @covers Molovo\Amnesia\Cache\Instance::encode
      * @covers Molovo\Amnesia\Cache\Instance::decode
      * @covers Molovo\Amnesia\Driver\Memcached::mset
@@ -356,6 +446,7 @@ class MemcachedTest extends \Codeception\TestCase\Test
      * @covers Molovo\Amnesia\Driver\Memcached::clear
      *
      * @uses Molovo\Amnesia\Cache\Instance::set
+     * @uses Molovo\Amnesia\Cache\Instance::mget
      * @uses Molovo\Amnesia\Cache\Instance::encode
      * @uses Molovo\Amnesia\Cache\Instance::decode
      * @uses Molovo\Amnesia\Driver\Memcached::set
@@ -382,6 +473,7 @@ class MemcachedTest extends \Codeception\TestCase\Test
      * @covers Molovo\Amnesia\Driver\Memcached::mclear
      *
      * @uses Molovo\Amnesia\Cache\Instance::mset
+     * @uses Molovo\Amnesia\Cache\Instance::mget
      * @uses Molovo\Amnesia\Cache\Instance::encode
      * @uses Molovo\Amnesia\Cache\Instance::decode
      * @uses Molovo\Amnesia\Driver\Memcached::mset
@@ -412,7 +504,7 @@ class MemcachedTest extends \Codeception\TestCase\Test
     // has been deprecated. For now to get round it, Driver\Memcached::keys()
     // returns an empty array, and Driver\Memcached::flush() flushes the entire
     // db, as we have no way at all of using namespacing.
-    // 
+    //
     //  /**
     //  * Tests that the keys can be retrieved correctly.
     //  *
