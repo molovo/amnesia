@@ -2,11 +2,14 @@
 
 namespace Molovo\Amnesia\Cache;
 
+use Molovo\Amnesia\Cache;
 use Molovo\Amnesia\Config;
 use Molovo\Amnesia\Driver\File;
 use Molovo\Amnesia\Driver\Memcached;
 use Molovo\Amnesia\Driver\Predis;
 use Molovo\Amnesia\Driver\Redis;
+use Molovo\Amnesia\Exceptions\ConfigNotFoundException;
+use Molovo\Amnesia\Exceptions\InvalidDriverException;
 use Molovo\Amnesia\Interfaces\Driver;
 
 class Instance
@@ -60,20 +63,25 @@ class Instance
             $config = Cache::config()->{$this->name};
         }
 
+        // If config is still null, then throw an exception
+        if ($config === null) {
+            throw new ConfigNotFoundException('No config could be found for instance '.$this->name.'.');
+        }
+
         // Set the name in the config as some drivers need it
         $config->name = $this->name;
 
         // Create a cache namespace key
         $this->key = hash('adler32', $name);
 
+        // If the driver isn't created, throw an exception
+        if (!isset($this->drivers[$config->driver])) {
+            throw new InvalidDriverException($config->driver.' is not a valid driver.');
+        }
+
         // Initialise the driver
         $driverClass  = $this->drivers[$config->driver];
         $this->driver = new $driverClass($config, $this);
-
-        // If the driver isn't created, throw an exception
-        if (!($this->driver instanceof Driver)) {
-            throw new InvalidDriverException($driver.' is not a valid driver.');
-        }
     }
 
     /**
