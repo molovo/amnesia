@@ -148,13 +148,4 @@ class Predis implements Driver
 
         return $this->mclear($keys);
     }
-
-    /**
-     * @codeCoverageIgnore
-     */
-    public function __destruct()
-    {
-        $this->client->disconnect();
-        $this->client = null;
-    }
 }

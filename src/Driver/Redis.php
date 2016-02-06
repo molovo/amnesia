@@ -160,13 +160,4 @@ class Redis implements Driver
 
         return $this->mclear($keys);
     }
-
-    /**
-     * @codeCoverageIgnore
-     */
-    public function __destruct()
-    {
-        $this->client->close();
-        $this->client = null;
-    }
 }
