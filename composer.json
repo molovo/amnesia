@@ -8,7 +8,7 @@
   "require": {
     "PHP": ">=5.5",
     "vlucas/phpdotenv": "2.1.*",
-    "molovo/object": "^0.2",
+    "molovo/object": "^1.0",
     "predis/predis": "^1.0"
   },
   "suggest": {
